@@ -1,5 +1,3 @@
-#include "status.h"
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -10,6 +8,15 @@
 #define order2 (order1 * order1)
 #define order4 (order2 * order2)
 #define order8 (order4 * order4)
+
+enum status {
+    STATUS_OK               = 0,
+    STATUS_READ_ERROR       = 1,
+    STATUS_UNEXPECTED_INPUT = 2,
+    STATUS_DUPLICATE_CLUE   = 3,
+
+    STATUS_EOF,
+};
 
 int get_x(int block_id, int offset) {
     return ((block_id % order1) * order1) + (offset % order1);
