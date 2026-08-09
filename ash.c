@@ -261,7 +261,7 @@ int read_non_negative_int(int *result) {
         case '8':
         case '9':
             *result *= 10;
-            *result += 'c' - '0';
+            *result += c - '0';
 
             break;
 
