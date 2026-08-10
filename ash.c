@@ -229,8 +229,12 @@ void grid_suggest_swap(struct grid const *grid_cptr, struct swap *swap_ptr) {
     swap_ptr->offset1 = grid_cptr->open_square_set_arr[swap_ptr->block_id].dense[swap_ptr->offset1];
 }
 
+void status(int status) {
+    fprintf(stdout, "%d\n", status);
+}
+
 void report(struct grid const *grid_cptr, double temperature) {
-    fprintf(stdout, "%d %f %d", STATUS_OK, temperature, grid_cptr->duplicates);
+    fprintf(stdout, "%f %d", temperature, grid_cptr->duplicates);
     fprintf(stdout, " ");
 
     for (int block_id = 0; block_id < order2; ++block_id) {
@@ -481,12 +485,16 @@ int run_once() {
     ret2 = read_to_next_request();
 
     if (STATUS_OK != ret) {
+        status(ret);
         return ret;
     }
 
     if (STATUS_OK != ret2) {
+        status(ret2);
         return ret2;
     }
+
+    status(STATUS_OK);
 
     //
     //
@@ -564,25 +572,13 @@ reheat:
 }
 
 int run() {
-    int ret;
-
     while (1) {
-        ret = run_once();
-
-        switch (ret) {
-        case STATUS_OK:
-            continue;
-
+        switch (run_once()) {
         case STATUS_EOF:
             return 0;
 
         case STATUS_READ_ERROR:
-            fprintf(stdout, "%d\n", ret);
             return 1;
-
-        default:
-            fprintf(stdout, "%d\n", ret);
-            continue;
         }
     }
 }
