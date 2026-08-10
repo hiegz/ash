@@ -233,8 +233,8 @@ void status(int status) {
     fprintf(stdout, "%d\n", status);
 }
 
-void report(struct grid const *grid_cptr, double temperature) {
-    fprintf(stdout, "%f %d", temperature, grid_cptr->duplicates);
+void report(int step, double temperature, struct grid const *grid_cptr) {
+    fprintf(stdout, "%d %f %d", step, temperature, grid_cptr->duplicates);
     fprintf(stdout, " ");
 
     for (int block_id = 0; block_id < order2; ++block_id) {
@@ -504,10 +504,12 @@ int run_once() {
 
     struct swap swap;
 
-    double temperature;
+    int    step = -1;
     int    steps_since_cooling;
     int    steps_since_improvement;
     int    steps_since_report;
+
+    double temperature;
 
 reheat:
     temperature             = compute_energy_delta_deviation(&grid);
@@ -516,8 +518,10 @@ reheat:
     steps_since_report      = report_frequency; // report before first step
 
     while (1) {
+        step++;
+
         if (grid.duplicates == 0 || (reports_enabled && steps_since_report == report_frequency)) {
-            report(&grid, temperature);
+            report(step, temperature, &grid);
 
             steps_since_report = 0;
         }
