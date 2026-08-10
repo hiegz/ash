@@ -132,8 +132,49 @@ def is_ready(stream):
 
 
 class Test(unittest.TestCase):
-    # tests go here
-    
+    def test_malformed_requests(self):
+        def test_case(request):
+            self.process.stdin.write(request.encode());
+            self.process.stdin.flush();
+
+            status = read_status(self.process.stdout)
+
+            self.assertEqual(Status.UNEXPECTED_INPUT, status)
+            self.assertFalse(is_ready(self.process.stdout))
+
+        requests = [
+            ( 0, ""),
+            ( 1, " "),
+            ( 2, "  "),
+            ( 3, "   "),
+            ( 4, "a"),
+            ( 5, " b"),
+            ( 6, " c "),
+            ( 7, "0"),
+            ( 8, "1"),
+            ( 9, "0;"),
+            (10, "1;"),
+            (11, "-;"),
+            (12, "a;"),
+            (13, "1;a................................................................................"),
+            (14, "1;.......................b........................................................."),
+            (15, "3;....................a..b........................................................."),
+            (16, "2;................................................................................c"),
+            (17, "5;..............................................................................."),
+            (18, "10;.............................................................................."),
+            (19, "32;.."),
+            (20, "12;."),
+        ]
+
+        seen = set()
+
+        for i, request in requests:
+            assert i not in seen
+            seen.add(i)
+
+            with self.subTest(i=i):
+                test_case(request + "\n")
+
     @classmethod
     def setUpClass(cls):
         import os
