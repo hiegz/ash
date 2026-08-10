@@ -109,7 +109,7 @@ class Report:
 def read_report(stream):
     line   = stream.readline().decode()
     raw    = line.strip().rstrip("\r\n")
-    fields = line.split(" ")
+    fields = raw.split(" ")
 
     if len(fields) != 4:
         raise ValueError(f"malformed report: {raw!r}") from exc
@@ -122,7 +122,7 @@ def read_report(stream):
     except ValueError as exc:
         raise ValueError(f"malformed report: {raw!r}") from exc
 
-    return Report(s)
+    return Report(step, temperature, duplicates, grid)
 
 
 def is_ready(stream):
