@@ -132,6 +132,33 @@ def is_ready(stream):
 
 
 class Test(unittest.TestCase):
+    def test_duplicate_clues(self):
+        def test_case(request):
+            self.process.stdin.write(request.encode())
+            self.process.stdin.flush()
+
+            status = read_status(self.process.stdout)
+
+            self.assertEqual(Status.DUPLICATE_CLUE, status)
+            self.assertFalse(is_ready(self.process.stdout))
+
+        requests = [
+            (0, "0;11..............................................................................."),
+            (1, "0;...............................................................................33"),
+            (2, "0;...................22............................................................"),
+            (3, "0;..................1234556789....................................................."),
+            (4, "0;..................123456789...........................123345678.................."),
+        ]
+
+        seen = set()
+
+        for i, request in requests:
+            assert i not in seen
+            seen.add(i)
+
+            with self.subTest(i=i):
+                test_case(request + "\n")
+
     def test_malformed_requests(self):
         def test_case(request):
             self.process.stdin.write(request.encode());
