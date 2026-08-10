@@ -133,6 +133,39 @@ def is_ready(stream):
 
 
 class Test(unittest.TestCase):
+    def test_solver(self):
+        def test_case(puzzle):
+            self.process.stdin.write(("0;" + puzzle + "\n").encode())
+            self.process.stdin.flush()
+
+            status = read_status(self.process.stdout)
+
+            self.assertEqual(Status.OK, status)
+
+            report = read_report(self.process.stdout)
+
+            self.assertEqual(0, report.duplicates)
+            self.assertEqual(0, report.grid.duplicates())
+
+        puzzles = [
+            (0, "................................................................................."),
+            (1, "8.1..925...3..71..9.685.47.5..76..32.6183....7.4.......2...5....19...4525..3.2197"),
+            (2, "2.38.9..64..16..3...57.4.197.2..8..1..325.6.7.6......2..793.6....572..9.926...47."),
+            (3, "34..7125..5..29........598.76.5...3.9..4.7..6..8..2.4.....1........43.......6.524"),
+            (4, ".6....7..2...9.86.319.8.4.....4.7...67..583.2..5......62..5....7.1...5.....62.19."),
+            (5, "...64..2.6......4.489.5.......18..7...5....2.8.39241....8.....3.9...7....4.2.8..1"),
+            (6, "6......1.9...78..57.....3......8..4.3..7..........365.1.93.4......1.6.....78....."),
+        ]
+
+        seen = set()
+
+        for i, puzzle in puzzles:
+            assert i not in seen
+            seen.add(i)
+
+            with self.subTest(i=i):
+                test_case(puzzle)
+
     def test_duplicate_clues(self):
         def test_case(request):
             self.process.stdin.write(request.encode())
