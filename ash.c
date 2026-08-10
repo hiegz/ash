@@ -231,6 +231,7 @@ void grid_suggest_swap(struct grid const *grid_cptr, struct swap *swap_ptr) {
 
 void status(int status) {
     fprintf(stdout, "%d\n", status);
+    fflush (stdout);
 }
 
 void report(int step, double temperature, struct grid const *grid_cptr) {
