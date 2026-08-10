@@ -34,7 +34,8 @@ class Grid:
         return g
 
     def index(self, block_id, offset):
-        index = block_id * order2 + offset
+        order2 = self.ORDER2
+        index  = block_id * order2 + offset
 
         return self.digits[index]
 
