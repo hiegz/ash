@@ -197,6 +197,39 @@ class Test(unittest.TestCase):
     #
     #
 
+    def run_report_frequency_test(self, frequency):
+        self.process.stdin.write((str(frequency) + ";.................................................................................\n").encode())
+        self.process.stdin.flush()
+
+        status = read_status(self.process.stdout)
+
+        self.assertEqual(Status.OK, status)
+
+        while True:
+            report = read_report(self.process.stdout)
+            step   = report.step
+
+            if (report.duplicates == 0):
+                break
+
+            self.assertEqual(0, step % frequency)
+
+    def test_report_frequency_1(self):
+        self.run_report_frequency_test(0)
+
+    def test_report_frequency_2(self):
+        self.run_report_frequency_test(256)
+
+    def test_report_frequency_3(self):
+        self.run_report_frequency_test(1024)
+
+    def test_report_frequency_4(self):
+        self.run_report_frequency_test(8192)
+
+    #
+    #
+    #
+
     def run_duplicate_detection_test(self, request):
         self.process.stdin.write((request + "\n").encode())
         self.process.stdin.flush()
