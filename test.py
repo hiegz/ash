@@ -133,109 +133,6 @@ def is_ready(stream):
 
 
 class Test(unittest.TestCase):
-    def test_solver(self):
-        def test_case(puzzle):
-            self.process.stdin.write(("0;" + puzzle + "\n").encode())
-            self.process.stdin.flush()
-
-            status = read_status(self.process.stdout)
-
-            self.assertEqual(Status.OK, status)
-
-            report = read_report(self.process.stdout)
-
-            self.assertEqual(0, report.duplicates)
-            self.assertEqual(0, report.grid.duplicates())
-
-        puzzles = [
-            (0, "................................................................................."),
-            (1, "8.1..925...3..71..9.685.47.5..76..32.6183....7.4.......2...5....19...4525..3.2197"),
-            (2, "2.38.9..64..16..3...57.4.197.2..8..1..325.6.7.6......2..793.6....572..9.926...47."),
-            (3, "34..7125..5..29........598.76.5...3.9..4.7..6..8..2.4.....1........43.......6.524"),
-            (4, ".6....7..2...9.86.319.8.4.....4.7...67..583.2..5......62..5....7.1...5.....62.19."),
-            (5, "...64..2.6......4.489.5.......18..7...5....2.8.39241....8.....3.9...7....4.2.8..1"),
-            (6, "6......1.9...78..57.....3......8..4.3..7..........365.1.93.4......1.6.....78....."),
-        ]
-
-        seen = set()
-
-        for i, puzzle in puzzles:
-            assert i not in seen
-            seen.add(i)
-
-            with self.subTest(i=i):
-                test_case(puzzle)
-
-    def test_duplicate_clues(self):
-        def test_case(request):
-            self.process.stdin.write(request.encode())
-            self.process.stdin.flush()
-
-            status = read_status(self.process.stdout)
-
-            self.assertEqual(Status.DUPLICATE_CLUE, status)
-            self.assertFalse(is_ready(self.process.stdout))
-
-        requests = [
-            (0, "0;11..............................................................................."),
-            (1, "0;...............................................................................33"),
-            (2, "0;...................22............................................................"),
-            (3, "0;..................1234556789....................................................."),
-            (4, "0;..................123456789...........................123345678.................."),
-        ]
-
-        seen = set()
-
-        for i, request in requests:
-            assert i not in seen
-            seen.add(i)
-
-            with self.subTest(i=i):
-                test_case(request + "\n")
-
-    def test_malformed_requests(self):
-        def test_case(request):
-            self.process.stdin.write(request.encode());
-            self.process.stdin.flush();
-
-            status = read_status(self.process.stdout)
-
-            self.assertEqual(Status.UNEXPECTED_INPUT, status)
-            self.assertFalse(is_ready(self.process.stdout))
-
-        requests = [
-            ( 0, ""),
-            ( 1, " "),
-            ( 2, "  "),
-            ( 3, "   "),
-            ( 4, "a"),
-            ( 5, " b"),
-            ( 6, " c "),
-            ( 7, "0"),
-            ( 8, "1"),
-            ( 9, "0;"),
-            (10, "1;"),
-            (11, "-;"),
-            (12, "a;"),
-            (13, "1;a................................................................................"),
-            (14, "1;.......................b........................................................."),
-            (15, "3;....................a..b........................................................."),
-            (16, "2;................................................................................c"),
-            (17, "5;..............................................................................."),
-            (18, "10;.............................................................................."),
-            (19, "32;.."),
-            (20, "12;."),
-        ]
-
-        seen = set()
-
-        for i, request in requests:
-            assert i not in seen
-            seen.add(i)
-
-            with self.subTest(i=i):
-                test_case(request + "\n")
-
     @classmethod
     def setUpClass(cls):
         import os
@@ -257,6 +154,139 @@ class Test(unittest.TestCase):
     def tearDownClass(cls):
         cls.process.terminate()
         cls.process.wait()
+
+    # 
+    #
+    # 
+
+    def run_solver_test(self, puzzle):
+        self.process.stdin.write(("0;" + puzzle + "\n").encode())
+        self.process.stdin.flush()
+
+        status = read_status(self.process.stdout)
+
+        self.assertEqual(Status.OK, status)
+
+        report = read_report(self.process.stdout)
+
+        self.assertEqual(0, report.duplicates)
+        self.assertEqual(0, report.grid.duplicates())
+
+    def test_solver_1(self):
+        self.run_solver_test(".................................................................................")
+
+    def test_solver_2(self):
+        self.run_solver_test("8.1..925...3..71..9.685.47.5..76..32.6183....7.4.......2...5....19...4525..3.2197")
+
+    def test_solver_3(self):
+        self.run_solver_test("2.38.9..64..16..3...57.4.197.2..8..1..325.6.7.6......2..793.6....572..9.926...47.")
+
+    def test_solver_4(self):
+        self.run_solver_test("34..7125..5..29........598.76.5...3.9..4.7..6..8..2.4.....1........43.......6.524")
+
+    def test_solver_5(self):
+        self.run_solver_test(".6....7..2...9.86.319.8.4.....4.7...67..583.2..5......62..5....7.1...5.....62.19.")
+
+    def test_solver_6(self):
+        self.run_solver_test("...64..2.6......4.489.5.......18..7...5....2.8.39241....8.....3.9...7....4.2.8..1")
+
+    def test_solver_7(self):
+        self.run_solver_test("6......1.9...78..57.....3......8..4.3..7..........365.1.93.4......1.6.....78.....")
+
+    #
+    #
+    #
+
+    def run_duplicate_detection_test(self, request):
+        self.process.stdin.write((request + "\n").encode())
+        self.process.stdin.flush()
+
+        status = read_status(self.process.stdout)
+
+        self.assertEqual(Status.DUPLICATE_CLUE, status)
+        self.assertFalse(is_ready(self.process.stdout))
+
+    def test_duplicate_detection_1(self):
+        self.run_duplicate_detection_test("0;11...............................................................................")
+
+    def test_duplicate_detection_2(self):
+        self.run_duplicate_detection_test("0;...............................................................................33")
+
+    def test_duplicate_detection_3(self):
+        self.run_duplicate_detection_test("0;...................22............................................................")
+
+    def test_duplicate_detection_4(self):
+        self.run_duplicate_detection_test("0;..................1234556789.....................................................")
+
+    def test_duplicate_detection_5(self):
+        self.run_duplicate_detection_test("0;..................123456789...........................123345678..................")
+
+    #
+    #
+    #
+
+    def run_malformed_request_test(self, request):
+        self.process.stdin.write((request + "\n").encode());
+        self.process.stdin.flush();
+
+        status = read_status(self.process.stdout)
+
+        self.assertEqual(Status.UNEXPECTED_INPUT, status)
+        self.assertFalse(is_ready(self.process.stdout))
+
+    def test_malformed_request_1(self):
+        self.run_malformed_request_test("")
+
+    def test_malformed_request_2(self):
+        self.run_malformed_request_test(" ")
+
+    def test_malformed_request_3(self):
+        self.run_malformed_request_test("  ")
+        
+    def test_malformed_request_4(self):
+        self.run_malformed_request_test("   ")
+
+    def test_malformed_request_5(self):
+        self.run_malformed_request_test("a")
+
+    def test_malformed_request_6(self):
+        self.run_malformed_request_test(" b")
+
+    def test_malformed_request_7(self):
+        self.run_malformed_request_test(" c ")
+
+    def test_malformed_request_8(self):
+        self.run_malformed_request_test("0")
+
+    def test_malformed_request_9(self):
+        self.run_malformed_request_test("1")
+
+    def test_malformed_request_10(self):
+        self.run_malformed_request_test("0;")
+
+    def test_malformed_request_11(self):
+        self.run_malformed_request_test("-;")
+
+    def test_malformed_request_12(self):
+        self.run_malformed_request_test("1;a................................................................................")
+
+    def test_malformed_request_13(self):
+        self.run_malformed_request_test("1;.......................b.........................................................")
+
+    def test_malformed_request_14(self):
+        self.run_malformed_request_test("3;....................a..b.........................................................")
+
+    def test_malformed_request_15(self):
+        self.run_malformed_request_test("2;................................................................................c")
+
+    def test_malformed_request_16(self):
+        self.run_malformed_request_test("5;...............................................................................")
+
+    def test_malformed_request_17(self):
+        self.run_malformed_request_test("32;..")
+
+    def test_malformed_request_18(self):
+        self.run_malformed_request_test("12;.")
 
 
 if __name__ == "__main__":
