@@ -1,6 +1,33 @@
 import unittest
 
 
+def read_env_ash():
+    import os
+    from   pathlib import Path
+
+    ash = os.environ.get("ASH")
+
+    if not ash:
+        raise RuntimeError("ASH not set")
+
+    return Path.cwd() / ash
+
+ash = read_env_ash()
+
+def spawn_ash():
+    import subprocess
+
+    return subprocess.Popen(
+        [ash],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE
+    )
+
+def kill_ash(process):
+    process.terminate()
+    process.wait()
+
+
 class Status:
     OK               = 0
     READ_ERROR       = 1
@@ -132,28 +159,14 @@ def is_ready(stream):
     return bool(select.select([stream], [], [], 0)[0])
 
 
-class Test(unittest.TestCase):
+class RequestResponseTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        import os
-        import subprocess
-        from   pathlib import Path
-
-        exe = os.environ.get("ASH")
-
-        if not exe:
-            raise RuntimeError("ASH not set")
-
-        cls.process = subprocess.Popen(
-            [Path.cwd() / exe],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
+        cls.process = spawn_ash()
 
     @classmethod
     def tearDownClass(cls):
-        cls.process.terminate()
-        cls.process.wait()
+        kill_ash(cls.process)
 
     # 
     #
@@ -320,6 +333,15 @@ class Test(unittest.TestCase):
 
     def test_malformed_request_18(self):
         self.run_malformed_request_test("12;.")
+
+
+class ReturnValueTest(unittest.TestCase):
+    def test_eof(self):
+        with spawn_ash() as process:
+            process.stdin.close()
+            returnValue = process.wait()
+
+            self.assertEqual(0, returnValue)
 
 
 if __name__ == "__main__":
